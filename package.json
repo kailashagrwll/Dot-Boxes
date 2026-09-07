@@ -1,0 +1,26 @@
+{
+  "name": "3d-dots-and-boxes",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "server": "node server/server.js",
+    "dev:all": "concurrently \"npm run server\" \"npm run dev\"",
+    "test:multi": "node test/multiplayer.test.js"
+  },
+  "dependencies": {
+    "canvas-confetti": "^1.9.4",
+    "concurrently": "^10.0.5",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
+    "three": "^0.174.0"
+  },
+  "devDependencies": {
+    "vite": "^6.2.0"
+  }
+}

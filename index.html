@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Dots & Boxes 3D | Futuristic Strategy Game</title>
+  <meta name="description" content="A modern, polished 3D Dots & Boxes two-player strategy game built with Three.js.">
+  <link rel="stylesheet" href="/src/styles/style.css">
+</head>
+<body>
+  <!-- Three.js Canvas Container -->
+  <div id="game-canvas-container"></div>
+
+  <!-- UI Overlay Layer -->
+  <div id="ui-root">
+    
+    <!-- TOP HEADS-UP DISPLAY (HUD) -->
+    <header id="hud-container" class="hidden">
+      <!-- Player 1 Scorecard (Left) -->
+      <div id="hud-p1-card" class="glass-panel hud-player-card hud-p1 interactive">
+        <div class="hud-label">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--p1-cyan); display: inline-block;"></span>
+          <span id="hud-p1-name-tag">PLAYER 1</span>
+        </div>
+        <div class="hud-score-row">
+          <span id="hud-p1-score" class="hud-score-number">00</span>
+          <span class="hud-score-sub">BOXES</span>
+        </div>
+        <div id="hud-p1-streak" class="hud-streak-badge hidden"></div>
+      </div>
+
+      <!-- Center Turn Indicator -->
+      <div id="turn-indicator" class="glass-panel interactive">
+        <span id="turn-indicator-text">PLAYER 1'S TURN</span>
+        <span id="turn-indicator-sub"></span>
+        <div id="hud-opponent-status" class="hud-conn-status hidden">
+          <span style="color:#22c55e;">●</span> OPPONENT ONLINE
+        </div>
+      </div>
+
+      <!-- Player 2 Scorecard (Right) -->
+      <div id="hud-p2-card" class="glass-panel hud-player-card hud-p2 interactive">
+        <div class="hud-label">
+          <span id="hud-p2-name-tag">PLAYER 2</span>
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--p2-rose); display: inline-block;"></span>
+        </div>
+        <div class="hud-score-row">
+          <span id="hud-p2-score" class="hud-score-number">00</span>
+          <span class="hud-score-sub">BOXES</span>
+        </div>
+        <div id="hud-p2-streak" class="hud-streak-badge hidden"></div>
+      </div>
+    </header>
+
+    <!-- IN-GAME QUICK CONTROLS (Bottom Center) -->
+    <nav id="in-game-controls" class="glass-panel hidden" aria-label="Game navigation and quick controls">
+      <button id="btn-toggle-view" class="btn-icon" title="Switch View: Front / 3D Tilted" aria-label="Switch View">📐</button>
+      <button id="btn-toggle-sound" class="btn-icon" title="Toggle Sound" aria-label="Toggle Sound">🔊</button>
+      <button id="btn-reset-camera" class="btn-icon" title="Reset Camera View" aria-label="Reset Camera View">🎯</button>
+      <button id="btn-restart-game" class="btn-icon" title="Restart Game" aria-label="Restart Game">🔄</button>
+      <button id="btn-open-menu" class="btn-icon" title="Main Menu" aria-label="Main Menu">🏠</button>
+    </nav>
+
+    <!-- MAIN OPENING SCREEN -->
+    <div id="main-menu-screen" class="screen-modal-overlay">
+      <div class="glass-panel screen-card interactive">
+        <h1 class="game-title">DOTS &amp; BOXES</h1>
+        <p class="game-tagline">Classic strategy. Two players. One winner.</p>
+        
+        <div class="menu-button-group">
+          <button id="btn-menu-play-local" class="btn-primary">
+            <span>🎮</span> LOCAL 2-PLAYER
+          </button>
+          <button id="btn-menu-play-online" class="btn-primary" style="background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); box-shadow: 0 4px 18px rgba(168, 85, 247, 0.4);">
+            <span>🌐</span> PLAY ONLINE
+          </button>
+          <button id="btn-menu-how" class="btn-secondary">
+            <span>📖</span> HOW TO PLAY
+          </button>
+          <button id="btn-menu-settings" class="btn-secondary">
+            <span>⚙️</span> SETTINGS
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ONLINE MULTIPLAYER MENU SCREEN -->
+    <div id="online-menu-screen" class="screen-modal-overlay hidden">
+      <div class="glass-panel screen-card interactive">
+        <h2 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 6px;">ONLINE PLAY</h2>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 24px;">Challenge a friend across the internet</p>
+
+        <div class="menu-button-group">
+          <button id="btn-online-create" class="btn-primary">
+            <span>➕</span> CREATE GAME
+          </button>
+          <button id="btn-online-join" class="btn-secondary">
+            <span>🔑</span> JOIN WITH CODE
+          </button>
+          <button id="btn-online-back" class="btn-secondary" style="margin-top: 8px;">
+            <span>←</span> BACK
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- JOIN WITH ROOM CODE SCREEN -->
+    <div id="join-room-screen" class="screen-modal-overlay hidden">
+      <div class="glass-panel screen-card interactive">
+        <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 6px;">JOIN GAME</h2>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 20px;">Enter the 6-character room code</p>
+
+        <div style="width: 100%; margin-bottom: 22px;">
+          <input id="input-room-code" type="text" maxlength="6" placeholder="AB7K9P" class="room-code-input" autocomplete="off" spellcheck="false" />
+        </div>
+
+        <div class="menu-button-group">
+          <button id="btn-submit-join" class="btn-primary">
+            <span>🚀</span> JOIN GAME
+          </button>
+          <button id="btn-join-back" class="btn-secondary">
+            <span>←</span> BACK
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRIVATE ROOM LOBBY SCREEN -->
+    <div id="lobby-room-screen" class="screen-modal-overlay hidden">
+      <div class="glass-panel screen-card interactive" style="max-width: 480px;">
+        <div style="font-size: 0.78rem; font-weight: 800; letter-spacing: 0.15em; color: var(--text-muted); text-transform: uppercase;">PRIVATE ROOM</div>
+        <div id="lobby-display-code" class="lobby-code-display">------</div>
+
+        <div style="display: flex; gap: 10px; width: 100%; margin-bottom: 20px;">
+          <button id="btn-copy-code" class="btn-secondary" style="flex: 1; padding: 9px 12px; font-size: 0.85rem;">
+            <span>📋</span> COPY CODE
+          </button>
+          <button id="btn-copy-link" class="btn-secondary" style="flex: 1; padding: 9px 12px; font-size: 0.85rem;">
+            <span>🔗</span> INVITE LINK
+          </button>
+        </div>
+
+        <!-- Players in Lobby -->
+        <div class="lobby-players-grid">
+          <div id="lobby-p1-card" class="lobby-player-box p1">
+            <span id="lobby-p1-name" class="lobby-pname">PLAYER 1 🔵</span>
+            <span id="lobby-p1-status" class="lobby-status-tag">NOT READY</span>
+          </div>
+          <div id="lobby-p2-card" class="lobby-player-box p2">
+            <span id="lobby-p2-name" class="lobby-pname">PLAYER 2 🔴</span>
+            <span id="lobby-p2-status" class="lobby-status-tag waiting">WAITING FOR FRIEND...</span>
+          </div>
+        </div>
+
+        <!-- Host Board Size Selector -->
+        <div id="lobby-size-controls" class="lobby-size-box">
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div>
+              <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); letter-spacing: 0.08em;">BOARD SIZE (HOST)</div>
+              <div id="lobby-size-label" style="font-size: 0.95rem; font-weight: 700; color: #38bdf8;">5 × 5 (16 boxes)</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <button id="btn-lobby-size-minus" class="btn-stepper" style="width: 38px; height: 38px; font-size: 1.2rem;">−</button>
+              <span id="lobby-size-value" style="font-family: var(--font-mono); font-size: 1.4rem; font-weight: 800; min-width: 28px; text-align: center;">5</span>
+              <button id="btn-lobby-size-plus" class="btn-stepper" style="width: 38px; height: 38px; font-size: 1.2rem;">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ready Button -->
+        <div class="menu-button-group">
+          <button id="btn-lobby-ready" class="btn-primary" style="padding: 16px;">
+            READY TO PLAY
+          </button>
+          <button id="btn-lobby-leave" class="btn-secondary">
+            LEAVE ROOM
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FULLSCREEN 3-2-1 COUNTDOWN OVERLAY -->
+    <div id="countdown-overlay" class="countdown-fullscreen hidden">
+      <div id="countdown-number" class="countdown-digits">3</div>
+      <div class="countdown-text">MATCH STARTING...</div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="toast-wrapper"></div>
+
+    <!-- BOARD SIZE SELECTION SCREEN -->
+    <div id="size-select-screen" class="screen-modal-overlay hidden">
+      <div class="glass-panel screen-card interactive">
+        <h2 style="font-size: 1.5rem; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 6px;">Choose Board Size</h2>
+        <p style="font-size: 0.88rem; color: var(--text-muted);">Adjust the dots grid dimension</p>
+
+        <!-- Stepper -->
+        <div class="stepper-container">
+          <button id="btn-size-minus" class="btn-stepper" aria-label="Decrease board size">−</button>
+          <div id="size-display-value" class="stepper-value">5</div>
+          <button id="btn-size-plus" class="btn-stepper" aria-label="Increase board size">+</button>
+        </div>
+
+        <div class="size-details">
+          <div id="size-dots-label" class="size-dots-badge">5 × 5 DOTS</div>
+          <div id="size-boxes-label" class="size-boxes-badge">16 BOXES</div>
+        </div>
+
+        <div class="menu-button-group">
+          <button id="btn-start-game" class="btn-primary">
+            <span>🎮</span> START GAME
+          </button>
+          <button id="btn-size-back" class="btn-secondary">
+            <span>←</span> BACK
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOW TO PLAY MODAL -->
+    <div id="how-to-play-modal" class="screen-modal-overlay hidden">
+      <div class="glass-panel screen-card interactive" style="max-width: 500px;">
+        <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 4px;">HOW TO PLAY</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">The quintessential grid tactical duel</p>
+
+        <!-- Visual Mini Diagram -->
+        <div class="rule-diagram-box">
+          <div class="mini-box-demo">
+            <div class="mini-dot tl"></div>
+            <div class="mini-dot tr"></div>
+            <div class="mini-dot bl"></div>
+            <div class="mini-dot br"></div>
+            <div class="mini-line top active"></div>
+            <div class="mini-line left active"></div>
+            <div class="mini-line bottom active"></div>
+            <div class="mini-line right closing"></div>
+            <div class="mini-box-fill">+1</div>
+          </div>
+          <div style="text-align: left; font-size: 0.82rem; color: #cbd5e1; max-width: 250px; line-height: 1.4;">
+            Connecting the <strong style="color: var(--p2-rose);">4th line</strong> completes and claims the entire box!
+          </div>
+        </div>
+
+        <div class="how-steps-list">
+          <div class="how-step">
+            <div class="step-number">1</div>
+            <div class="step-text">Take turns clicking or tapping between adjacent dots to place a line.</div>
+          </div>
+          <div class="how-step">
+            <div class="step-number">2</div>
+            <div class="step-text">Completing the <strong>4th side</strong> of a box claims it in your player's color.</div>
+          </div>
+          <div class="how-step">
+            <div class="step-number">3</div>
+            <div class="step-text">Every box you claim scores <strong>+1 point</strong> and grants an <strong>EXTRA TURN</strong>!</div>
+          </div>
+          <div class="how-step">
+            <div class="step-number">4</div>
+            <div class="step-text">A single move can claim up to <strong>2 boxes</strong> simultaneously (+2 bonus).</div>
+          </div>
+          <div class="how-step">
+            <div class="step-number">5</div>
+            <div class="step-text">When all boxes are claimed, the player with the most boxes wins!</div>
+          </div>
+        </div>
+
+        <button id="btn-close-how" class="btn-primary" style="width: 100%;">
+          GOT IT
+        </button>
+      </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settings-modal" class="screen-modal-overlay hidden">
+      <div class="glass-panel screen-card interactive" style="max-width: 400px;">
+        <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 4px;">SETTINGS</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Game preferences &amp; controls</p>
+
+        <div style="display: flex; flex-direction: column; gap: 14px; width: 100%; margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(255,255,255,0.04); border-radius: 12px;">
+            <span style="font-weight: 600; font-size: 0.95rem;">Sound Effects</span>
+            <button id="btn-settings-sound" class="btn-secondary" style="padding: 6px 14px; font-size: 0.85rem;">SOUND ON</button>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(255,255,255,0.04); border-radius: 12px;">
+            <span style="font-weight: 600; font-size: 0.95rem;">Board Angle</span>
+            <button id="btn-settings-view" class="btn-secondary" style="padding: 6px 14px; font-size: 0.85rem;">FRONT VIEW</button>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(255,255,255,0.04); border-radius: 12px;">
+            <span style="font-weight: 600; font-size: 0.95rem;">Camera Control</span>
+            <span style="font-size: 0.82rem; color: var(--text-muted);">Drag to Rotate / Pinch Zoom</span>
+          </div>
+        </div>
+
+        <button id="btn-close-settings" class="btn-primary" style="width: 100%;">
+          CLOSE
+        </button>
+      </div>
+    </div>
+
+    <!-- GAME OVER SCREEN -->
+    <div id="game-over-screen" class="screen-modal-overlay hidden">
+      <div class="glass-panel screen-card interactive">
+        <div class="game-over-title">MATCH FINISHED</div>
+        <div id="game-over-winner-text" class="game-over-winner">🏆 PLAYER 1 WINS</div>
+        <div id="game-over-streak-banner" class="game-over-streak hidden"><span class="fire-icon">🔥</span> 2 MATCH WIN STREAK!</div>
+        <div id="game-over-winner-sub" class="game-over-winner-sub">Strategic supremacy achieved</div>
+
+        <div class="game-over-scorecards">
+          <div class="game-over-card p1-border">
+            <span class="game-over-pname p1-text">PLAYER 1</span>
+            <span id="game-over-p1-boxes" class="game-over-pboxes">0 BOXES</span>
+          </div>
+          <div class="game-over-card p2-border">
+            <span class="game-over-pname p2-text">PLAYER 2</span>
+            <span id="game-over-p2-boxes" class="game-over-pboxes">0 BOXES</span>
+          </div>
+        </div>
+
+        <div class="menu-button-group">
+          <button id="btn-game-over-play-again" class="btn-primary">
+            <span>🔄</span> PLAY AGAIN
+          </button>
+          <button id="btn-game-over-new-game" class="btn-secondary">
+            <span>⚙️</span> NEW GAME
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
