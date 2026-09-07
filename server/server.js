@@ -217,13 +217,13 @@ io.on('connection', (socket) => {
 });
 
 if (fs.existsSync(distPath)) {
-  app.get('*', (req, res, next) => {
+  app.get('/{*splat}', (req, res, next) => {
     if (req.path === '/health') return next();
     res.sendFile(path.join(distPath, 'index.html'));
   });
 }
 
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`🌐 Dots & Boxes Authoritative Server running on port ${PORT}`);
 });
