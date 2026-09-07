@@ -119,7 +119,7 @@ export class CameraManager {
 
     // Pointer down
     el.addEventListener('pointerdown', (e) => {
-      if (!this.enabled || e.button !== 0) return;
+      if (!this.enabled || (e.pointerType === 'mouse' && e.button !== 0)) return;
       this.isDragging = true;
       this.hasMovedSignificantly = false;
       this.startPointerPosition = { x: e.clientX, y: e.clientY };

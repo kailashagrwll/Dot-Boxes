@@ -17,12 +17,16 @@ export class SocketClient {
   }
 
   getOrCreateSessionToken() {
-    let token = sessionStorage.getItem('dots_session_token');
-    if (!token) {
-      token = 'usr_' + Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
-      sessionStorage.setItem('dots_session_token', token);
+    try {
+      let token = sessionStorage.getItem('dots_session_token');
+      if (!token) {
+        token = 'usr_' + Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
+        sessionStorage.setItem('dots_session_token', token);
+      }
+      return token;
+    } catch (e) {
+      return 'usr_' + Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
     }
-    return token;
   }
 
   connect() {

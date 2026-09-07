@@ -44,15 +44,15 @@ export class TouchInput {
       const duration = Date.now() - this.touchStart.time;
 
       // Only evaluate if it was a single-finger tap
-      if (e.changedTouches.length === 1 && duration < 350) {
+      if (e.changedTouches.length === 1 && duration < 500) {
         const touch = e.changedTouches[0];
         const dist = Math.hypot(
           touch.clientX - this.touchStart.x,
           touch.clientY - this.touchStart.y
         );
 
-        // Tap detected (not a swipe/orbit)
-        if (dist < 15 && !this.cameraManager.hasMovedSignificantly) {
+        // Tap detected (not an intentional swipe/orbit)
+        if (dist < 28 && !this.cameraManager.isDragging) {
           this.handleTap(touch.clientX, touch.clientY);
         }
       }

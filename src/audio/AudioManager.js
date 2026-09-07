@@ -5,7 +5,12 @@
 export class AudioManager {
   constructor() {
     this.ctx = null;
-    this.muted = localStorage.getItem('dots_sound_muted') === 'true';
+    this.muted = false;
+    try {
+      this.muted = localStorage.getItem('dots_sound_muted') === 'true';
+    } catch (e) {
+      this.muted = false;
+    }
     this.initialized = false;
   }
 
@@ -24,14 +29,20 @@ export class AudioManager {
 
   ensureContext() {
     this.init();
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume();
+    try {
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+    } catch (e) {
+      // Ignore
     }
   }
 
   toggleSound() {
     this.muted = !this.muted;
-    localStorage.setItem('dots_sound_muted', this.muted);
+    try {
+      localStorage.setItem('dots_sound_muted', this.muted);
+    } catch (e) {}
     if (!this.muted) {
       this.ensureContext();
       this.playClick();
@@ -56,24 +67,30 @@ export class AudioManager {
   }
 
   playClick() {
-    if (this.muted || !this.ctx) return;
+    if (this.muted) return;
     this.ensureContext();
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
+    if (!this.ctx) return;
 
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(800, now);
-    osc.frequency.exponentialRampToValueAtTime(300, now + 0.05);
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
 
-    gain.gain.setValueAtTime(0.15, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, now);
+      osc.frequency.exponentialRampToValueAtTime(300, now + 0.05);
 
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
 
-    osc.start(now);
-    osc.stop(now + 0.05);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.05);
+    } catch (e) {
+      // Ignore audio error
+    }
   }
 
   playHover() {

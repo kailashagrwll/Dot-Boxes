@@ -427,7 +427,17 @@ class App {
   }
 }
 
-// Initialize on DOMContentLoaded
-window.addEventListener('DOMContentLoaded', () => {
-  new App();
-});
+// Initialize immediately if DOM is ready, or on DOMContentLoaded
+function startApp() {
+  try {
+    new App();
+  } catch (err) {
+    console.error('Error starting Dots & Boxes App:', err);
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startApp);
+} else {
+  startApp();
+}
